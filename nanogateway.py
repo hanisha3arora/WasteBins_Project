@@ -59,7 +59,7 @@ class NanoGateway:
         self.password = password
         self.server = server
         self.port = port
-        
+
         #NTP = synchronize the clocks of comps to some time reference
         self.ntp = ntp
         self.ntp_period = ntp_period

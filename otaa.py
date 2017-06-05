@@ -44,10 +44,7 @@ time.sleep(5.0)
 
 #own code area
 
-#trigger
-Pin.init()
-
-
+print(10)
 
 for i in range (200):
     s.send(b'PKT #' + bytes[i]))
@@ -55,4 +52,5 @@ for i in range (200):
     rx = s.recv(256)
     if rx:
         print(rx)
+        print(10)
     time.sleep(6)

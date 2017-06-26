@@ -19,7 +19,6 @@
  * Note: LoRaWAN per sub-band duty-cycle limitation is enforced (1% in
  * g1, 0.1% in g2), but not the TTN fair usage policy (which is probably
  * violated by this sketch when left running for longer)!
-
  * To use this sketch, first register your application and device with
  * the things network, to set or generate an AppEUI, DevEUI and AppKey.
  * Multiple devices can use the same AppEUI, but each device has its own
@@ -38,16 +37,16 @@
 #include "I2C.h"
 #include "NewPing.h"
 #include <Arduino.h>
-#include <CayenneLPP.h>
 
 //CayenneLPP lpp(uint8_t size); 
 //TheThingsNetwork ttn(loraSerial, debugSerial, freqPlan);
 int sleepcycles = 7;  // every sleepcycle will last 8 secs, total sleeptime will be sleepcycles * 8 sec
+float distance = 0;
 bool joined = false;
 bool sleeping = false;
 #define LedPin 2     // pin 13 LED is not used, because it is connected to the SPI port
-#define TRIGGER_PIN 4
-#define ECHO_PIN 0
+#define TRIGGER_PIN 13
+#define ECHO_PIN 11
 #define MAX_DISTANCE 450
 
 NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
@@ -185,23 +184,22 @@ void do_send(osjob_t* j) {
   delay(10000);
   byte buffer[2];
   float distance;
-  uint8_t d_value, s_value;
+  uint8_t d_value;
   distance = sonar.ping_cm();
   Serial.print("Distance: ");
   Serial.println(distance);
   Serial.print("Distance in hex: ");
   Serial.println(distance, HEX);
   d_value = int8_t(distance);
-  s_value = d_value<<10;
-  buffer[0] = s_value&0xFF;
-  buffer[1]= s_value>>8;
+  buffer[0] = d_value&0xFF; //high
+  buffer[1]= d_value>>8;//low
 
   //Check if there is a currecnt TX/RX job running 
   if (LMIC.opmode & OP_TXRXPEND) {
     Serial.println(F("OP_TXRXPEND, not sending"));
   } else {
     // Prepare upstream data transmission at the next possible time.
-    LMIC_setTxData2(1, d_value, sizeof(mydata)-1 ,0);
+    LMIC_setTxData2(1, (uint8_t*) buffer, 2 ,0);
     Serial.println(F("Sending: "));
   }
 }
@@ -310,7 +308,7 @@ void loop()
   //wakeup();
   delay(1600);
   //sleep(); 
-  Serial.println ("1");
+  Serial.println ("3");
   //lpp.measure_distance(1, 10);
   //ttn.sendBytes(lpp.getBuffer(), lpp.getSize()); 
   do_send(&sendjob);
